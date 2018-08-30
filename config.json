@@ -1,0 +1,19 @@
+{
+    "name": "Dropbox Upload",
+    "version": "1",
+    "slug": "dropbox_upload",
+    "description": "Upload snapshots to Dropbox!",
+    "startup": "once",
+    "boot": "auto",
+    "map": [
+        "backup"
+    ],
+    "options": {
+        "access_token": "<YOUR_ACCESS_TOKEN>",
+        "dropbox_dir": "<DROPBOX_UPLOAD_LOCATION>"
+    },
+    "schema": {
+        "access_token": "str",
+        "dropbox_dir": "str"
+    }
+}
