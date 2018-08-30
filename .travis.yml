@@ -1,14 +1,31 @@
 sudo: false
+
 language: python
 
-matrix:
-  include:
-    - env: TOXENV=flake8
-    - env: TOXENV=format
+python:
+  - "3.6"
+
+env:
+  - TOXENV=flake8
 
 install:
+  - pip install -U pip
   - pip install tox
+  - pip freeze
 
 script:
-  - git clean -f -d -x
   - tox
+
+stages:
+  - lint
+  - test
+
+jobs:
+  include:
+    - python: "3.6"
+    - stage: lint
+      install: pip install -U -e .[tests] black pyflakes isort
+      script:
+        - pyflakes dropbox-uploader
+        - black --check dropbox-uploader
+        - isort --check-only --diff --recursive dropbox-uploader
