@@ -128,7 +128,7 @@ def main():
         LOG.info(f"Created: {created}")
         size = bytes_to_human(os.path.getsize(snapshot))
         LOG.info(f"Size: {size}")
-        target = str(DROPBOX_DIR / snapshot)
+        target = str(DROPBOX_DIR / pathlib.Path(snapshot).name)
         LOG.info(f"Uploading to: {target}")
         try:
             if file_exists(dbx, snapshot, target):
