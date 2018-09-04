@@ -8,4 +8,4 @@ RUN pip3 install dropbox retrace
 
 COPY upload.py /
 
-CMD echo 'nameserver 1.1.1.1' > /etc/resolv.conf && python3 /upload.py
+CMD python3 /upload.py
