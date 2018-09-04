@@ -5,6 +5,8 @@
     "description": "Upload snapshots to Dropbox!",
     "startup": "once",
     "boot": "auto",
+    "hassio_api": null,
+    "homeassistant_api": null,
     "map": [
         "backup"
     ],
