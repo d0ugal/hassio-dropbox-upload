@@ -1,5 +1,3 @@
-import datetime
-import glob
 import hashlib
 import json
 import logging
@@ -7,15 +5,21 @@ import os
 import pathlib
 import sys
 
+import arrow
 import dropbox
 from dropbox import exceptions
-
+import requests
 import retrace
+
+
+def load_config(path="/data/options.json"):
+    with open(path) as f:
+        return json.load(f)
 
 
 def setup_logging():
     log = logging.getLogger("docker_upload")
-    log.setLevel(logging.DEBUG)
+    log.setLevel(logging.DEBUG if CONFIG.get("debug") else logging.INFO)
 
     ch = logging.StreamHandler(sys.stdout)
     ch.setLevel(logging.DEBUG)
@@ -25,17 +29,12 @@ def setup_logging():
     return log
 
 
-def load_config(path="/data/options.json"):
-    with open(path) as f:
-        return json.load(f)
-
-
-LOG = setup_logging()
+CONFIG = load_config()
 BACKUP_DIR = pathlib.Path("/backup/")
 CHUNK_SIZE = 4 * 1024 * 1024
-CONFIG = load_config()
-
+AUTH_HEADERS = {"X-HASSIO-KEY": os.environ["HASSIO_TOKEN"]}
 DROPBOX_DIR = pathlib.Path(CONFIG["dropbox_dir"])
+LOG = setup_logging()
 
 
 def bytes_to_human(nbytes):
@@ -48,12 +47,26 @@ def bytes_to_human(nbytes):
     return "%s %s" % (f, suffixes[i])
 
 
+def hassio_get(path):
+    r = requests.get(f"http://hassio/{path}", headers=AUTH_HEADERS).json()
+    LOG.debug(r)
+    return r["data"]
+
+
 def list_snapshots():
-    snapshots = list(filter(os.path.isfile, glob.glob(str(BACKUP_DIR / "*"))))
+    snapshots = hassio_get("snapshots")["snapshots"]
     # Sort them by creation date, and reverse. We want to backup the most recent first
-    snapshots.sort(key=lambda x: os.path.getmtime(x))
+    snapshots.sort(key=lambda x: arrow.get(x["date"]))
     snapshots.reverse()
     return snapshots
+
+
+def local_path(snapshot):
+    return BACKUP_DIR / f"{snapshot['slug']}.tar"
+
+
+def dropbox_path(snapshot):
+    return DROPBOX_DIR / f"{snapshot['slug']}.tar"
 
 
 @retrace.retry(limit=4)
@@ -71,7 +84,7 @@ def upload_file(dbx, file_path, dest_path):
     commit = dropbox.files.CommitInfo(path=dest_path)
     prev = None
     while f.tell() < file_size:
-        percentage = round((f.tell() / file_size)*100)
+        percentage = round((f.tell() / file_size) * 100)
 
         if not prev or percentage > prev + 5:
             LOG.info(f"{percentage:3} %")
@@ -112,7 +125,7 @@ def file_exists(dbx, file_path, dest_path):
         return True
 
     # If the hash doesn't match, delete the file so we can re-upload it.
-    # We might want to make this optional? a safer mode might be to 
+    # We might want to make this optional? a safer mode might be to
     # add a suffix?
     LOG.warn(
         "The snapshot conflicts with a file name in dropbox, the contents "
@@ -128,7 +141,7 @@ def file_exists(dbx, file_path, dest_path):
 def main():
     LOG.info("Starting Snapshot backup")
     snapshots = list_snapshots()
-    LOG.info(f"Backing up {len(snapshots)} snapshots\n")
+    LOG.info(f"Backing up {len(snapshots)} snapshots")
 
     dbx = dropbox.Dropbox(CONFIG["access_token"])
     try:
@@ -137,19 +150,20 @@ def main():
         LOG.error("Invalid access token")
 
     for i, snapshot in enumerate(snapshots, start=1):
-        LOG.info(f"Snapshot: {snapshot} ({i}/{len(snapshots)})")
-        created = os.path.getmtime(snapshot)
-        created = datetime.datetime.fromtimestamp(created).isoformat()
+        path = local_path(snapshot)
+        created = arrow.get(snapshot["date"])
+        size = bytes_to_human(os.path.getsize(path))
+        target = str(dropbox_path(snapshot))
+        LOG.info(f"Snapshot: {snapshot['name']} ({i}/{len(snapshots)})")
+        LOG.info(f"Slug: {snapshot['slug']}")
         LOG.info(f"Created: {created}")
-        size = bytes_to_human(os.path.getsize(snapshot))
         LOG.info(f"Size: {size}")
-        target = str(DROPBOX_DIR / pathlib.Path(snapshot).name)
         LOG.info(f"Uploading to: {target}")
         try:
-            if file_exists(dbx, snapshot, target):
-                LOG.info("Already found the upload with the same contents")
+            if file_exists(dbx, path, target):
+                LOG.info("Already found in Dropbox with the same hash")
                 continue
-            upload_file(dbx, snapshot, target)
+            upload_file(dbx, path, target)
         except Exception:
             LOG.exception("Upload failed")
 
@@ -157,4 +171,7 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except Exception:
+        LOG.exception("Unhandled error")
