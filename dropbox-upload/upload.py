@@ -7,9 +7,14 @@ import sys
 
 import arrow
 import dropbox
-from dropbox import exceptions
 import requests
 import retrace
+from dropbox import exceptions
+
+LOG = logging.getLogger("docker_upload")
+BACKUP_DIR = pathlib.Path("/backup/")
+CHUNK_SIZE = 4 * 1024 * 1024
+AUTH_HEADERS = {"X-HASSIO-KEY": os.environ["HASSIO_TOKEN"]}
 
 
 def load_config(path="/data/options.json"):
@@ -17,9 +22,9 @@ def load_config(path="/data/options.json"):
         return json.load(f)
 
 
-def setup_logging():
+def setup_logging(config):
     log = logging.getLogger("docker_upload")
-    log.setLevel(logging.DEBUG if CONFIG.get("debug") else logging.INFO)
+    log.setLevel(logging.DEBUG if config.get("debug") else logging.INFO)
 
     ch = logging.StreamHandler(sys.stdout)
     ch.setLevel(logging.DEBUG)
@@ -27,14 +32,6 @@ def setup_logging():
     ch.setFormatter(formatter)
     log.addHandler(ch)
     return log
-
-
-CONFIG = load_config()
-BACKUP_DIR = pathlib.Path("/backup/")
-CHUNK_SIZE = 4 * 1024 * 1024
-AUTH_HEADERS = {"X-HASSIO-KEY": os.environ["HASSIO_TOKEN"]}
-DROPBOX_DIR = pathlib.Path(CONFIG["dropbox_dir"])
-LOG = setup_logging()
 
 
 def bytes_to_human(nbytes):
@@ -65,8 +62,8 @@ def local_path(snapshot):
     return BACKUP_DIR / f"{snapshot['slug']}.tar"
 
 
-def dropbox_path(snapshot):
-    return DROPBOX_DIR / f"{snapshot['slug']}.tar"
+def dropbox_path(dropbox_dir, snapshot):
+    return dropbox_dir / f"{snapshot['slug']}.tar"
 
 
 @retrace.retry(limit=4)
@@ -139,11 +136,16 @@ def file_exists(dbx, file_path, dest_path):
 
 
 def main():
+
+    config = load_config()
+    dropbox_dir = pathlib.Path(config["dropbox_dir"])
+
     LOG.info("Starting Snapshot backup")
     snapshots = list_snapshots()
     LOG.info(f"Backing up {len(snapshots)} snapshots")
+    LOG.info(f"Backing up to Dropbox directory: {dropbox_dir}")
 
-    dbx = dropbox.Dropbox(CONFIG["access_token"])
+    dbx = dropbox.Dropbox(config["access_token"])
     try:
         dbx.users_get_current_account()
     except exceptions.AuthError:
@@ -153,7 +155,7 @@ def main():
         path = local_path(snapshot)
         created = arrow.get(snapshot["date"])
         size = bytes_to_human(os.path.getsize(path))
-        target = str(dropbox_path(snapshot))
+        target = str(dropbox_path(dropbox_dir, snapshot))
         LOG.info(f"Snapshot: {snapshot['name']} ({i}/{len(snapshots)})")
         LOG.info(f"Slug: {snapshot['slug']}")
         LOG.info(f"Created: {created}")
