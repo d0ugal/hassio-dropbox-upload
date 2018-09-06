@@ -14,7 +14,7 @@ from dropbox import exceptions
 LOG = logging.getLogger("docker_upload")
 BACKUP_DIR = pathlib.Path("/backup/")
 CHUNK_SIZE = 4 * 1024 * 1024
-AUTH_HEADERS = {"X-HASSIO-KEY": os.environ["HASSIO_TOKEN"]}
+AUTH_HEADERS = {"X-HASSIO-KEY": os.environ.get("HASSIO_TOKEN")}
 
 
 def load_config(path="/data/options.json"):
