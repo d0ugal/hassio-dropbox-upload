@@ -5,9 +5,10 @@ import os
 import pathlib
 import sys
 
+import requests
+
 import arrow
 import dropbox
-import requests
 import retrace
 from dropbox import exceptions
 
@@ -30,6 +31,8 @@ def setup_logging(config):
     ch.setLevel(logging.DEBUG)
     formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
     ch.setFormatter(formatter)
+    # Remove existing handlers. This should be an issue in unit tests.
+    log.handlers = []
     log.addHandler(ch)
     return log
 
@@ -45,9 +48,11 @@ def bytes_to_human(nbytes):
 
 
 def hassio_get(path):
-    r = requests.get(f"http://hassio/{path}", headers=AUTH_HEADERS).json()
-    LOG.debug(r)
-    return r["data"]
+    r = requests.get(f"http://hassio/{path}", headers=AUTH_HEADERS)
+    r.raise_for_status()
+    j = r.json()
+    LOG.debug(j)
+    return j["data"]
 
 
 def list_snapshots():
@@ -135,9 +140,27 @@ def file_exists(dbx, file_path, dest_path):
     return False
 
 
-def main():
+def process_snapshot(dropbox_dir, dbx, snapshot):
+    path = local_path(snapshot)
+    created = arrow.get(snapshot["date"])
+    size = bytes_to_human(os.path.getsize(path))
+    target = str(dropbox_path(dropbox_dir, snapshot))
+    LOG.info(f"Slug: {snapshot['slug']}")
+    LOG.info(f"Created: {created}")
+    LOG.info(f"Size: {size}")
+    LOG.info(f"Uploading to: {target}")
+    try:
+        if file_exists(dbx, path, target):
+            LOG.info("Already found in Dropbox with the same hash")
+            return
+        upload_file(dbx, path, target)
+    except Exception:
+        LOG.exception("Upload failed")
 
-    config = load_config()
+
+def main(config_file):
+
+    config = load_config(config_file)
     setup_logging(config)
     dropbox_dir = pathlib.Path(config["dropbox_dir"])
 
@@ -146,29 +169,20 @@ def main():
     LOG.info(f"Backing up {len(snapshots)} snapshots")
     LOG.info(f"Backing up to Dropbox directory: {dropbox_dir}")
 
+    if not snapshots:
+        LOG.warning("No snapshots found to backup")
+        return
+
     dbx = dropbox.Dropbox(config["access_token"])
     try:
         dbx.users_get_current_account()
     except exceptions.AuthError:
         LOG.error("Invalid access token")
+        return
 
     for i, snapshot in enumerate(snapshots, start=1):
-        path = local_path(snapshot)
-        created = arrow.get(snapshot["date"])
-        size = bytes_to_human(os.path.getsize(path))
-        target = str(dropbox_path(dropbox_dir, snapshot))
         LOG.info(f"Snapshot: {snapshot['name']} ({i}/{len(snapshots)})")
-        LOG.info(f"Slug: {snapshot['slug']}")
-        LOG.info(f"Created: {created}")
-        LOG.info(f"Size: {size}")
-        LOG.info(f"Uploading to: {target}")
-        try:
-            if file_exists(dbx, path, target):
-                LOG.info("Already found in Dropbox with the same hash")
-                continue
-            upload_file(dbx, path, target)
-        except Exception:
-            LOG.exception("Upload failed")
+        process_snapshot(dropbox_dir, dbx, snapshot)
 
     LOG.info("Uploads complete")
 
