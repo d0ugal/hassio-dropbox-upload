@@ -54,17 +54,14 @@ def test_list_snapshots(requests_mock):
     assert upload.list_snapshots() == []
 
 
-def test_main_no_snapshots(tmpdir, requests_mock, caplog):
+def test_backup_no_snapshots(tmpdir, requests_mock, caplog):
 
     # Create config file
     p = tmpdir.join("config.json")
     p.write(json.dumps({"dropbox_dir": "snapshots", "access_token": "token"}))
+    config = upload.load_config(p.strpath)
 
-    # Mock hassio
-    data = {"data": {"snapshots": []}}
-    requests_mock.get("http://hassio/snapshots", text=json.dumps(data))
-
-    upload.main(p.strpath)
+    upload.backup(config, [])
 
     assert (
         "docker_upload",
@@ -73,11 +70,12 @@ def test_main_no_snapshots(tmpdir, requests_mock, caplog):
     ) in caplog.record_tuples
 
 
-def test_main_invalid_token(tmpdir, requests_mock, caplog):
+def test_backup_invalid_token(tmpdir, requests_mock, caplog):
 
-    # Create config file
+    # create config file
     p = tmpdir.join("config.json")
     p.write(json.dumps({"dropbox_dir": "snapshots", "access_token": "token"}))
+    config = upload.load_config(p.strpath)
 
     # Mock hassio
     data = {
@@ -106,10 +104,32 @@ def test_main_invalid_token(tmpdir, requests_mock, caplog):
         "No snapshots found to backup",
     ) not in caplog.record_tuples
 
-    upload.main(p.strpath)
+    snapshots = upload.list_snapshots()
+    upload.backup(config, snapshots)
 
     assert (
         "docker_upload",
         logging.ERROR,
         "Invalid access token",
     ) in caplog.record_tuples
+
+
+def test_main(tmpdir, requests_mock, caplog):
+
+    # create config file
+    p = tmpdir.join("config.json")
+    p.write(json.dumps({"dropbox_dir": "snapshots", "access_token": "token"}))
+
+    # Mock hass API
+    data = {"data": {"snapshots": []}}
+    requests_mock.get("http://hassio/snapshots", text=json.dumps(data))
+
+    upload.main(p.strpath, lambda x: True)
+
+    assert (
+        "docker_upload",
+        logging.INFO,
+        "Starting Snapshot backup",
+    ) in caplog.record_tuples
+
+    assert ("docker_upload", logging.INFO, "Uploads complete") in caplog.record_tuples
