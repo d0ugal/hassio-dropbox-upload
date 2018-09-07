@@ -17,9 +17,10 @@ LOG = logging.getLogger("docker_upload")
 BACKUP_DIR = pathlib.Path("/backup/")
 CHUNK_SIZE = 4 * 1024 * 1024
 AUTH_HEADERS = {"X-HASSIO-KEY": os.environ.get("HASSIO_TOKEN")}
+DEFAULT_CONFIG = "/data/options.json"
 
 
-def load_config(path="/data/options.json"):
+def load_config(path=DEFAULT_CONFIG):
     with open(path) as f:
         return json.load(f)
 
@@ -198,6 +199,6 @@ def main(config_file, sleeper=time.sleep, DropboxAPI=dropbox.Dropbox):
 
 if __name__ == "__main__":
     try:
-        main()
+        main(DEFAULT_CONFIG)
     except Exception:
         LOG.exception("Unhandled error")
