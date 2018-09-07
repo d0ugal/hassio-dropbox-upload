@@ -138,6 +138,7 @@ def file_exists(dbx, file_path, dest_path):
 def main():
 
     config = load_config()
+    setup_logging(config)
     dropbox_dir = pathlib.Path(config["dropbox_dir"])
 
     LOG.info("Starting Snapshot backup")
