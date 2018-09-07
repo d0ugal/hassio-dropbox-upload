@@ -159,7 +159,7 @@ def process_snapshot(dropbox_dir, dbx, snapshot):
         LOG.exception("Upload failed")
 
 
-def backup(config, snapshots):
+def backup(dbx, config, snapshots):
 
     setup_logging(config)
     dropbox_dir = pathlib.Path(config["dropbox_dir"])
@@ -171,26 +171,26 @@ def backup(config, snapshots):
         LOG.warning("No snapshots found to backup")
         return
 
-    dbx = dropbox.Dropbox(config["access_token"])
+    for i, snapshot in enumerate(snapshots, start=1):
+        LOG.info(f"Snapshot: {snapshot['name']} ({i}/{len(snapshots)})")
+        process_snapshot(dropbox_dir, dbx, snapshot)
+
+
+def main(config_file, sleeper=time.sleep, DropboxAPI=dropbox.Dropbox):
+
+    config = load_config(config_file)
+
+    dbx = DropboxAPI(config["access_token"])
     try:
         dbx.users_get_current_account()
     except exceptions.AuthError:
         LOG.error("Invalid access token")
         return
 
-    for i, snapshot in enumerate(snapshots, start=1):
-        LOG.info(f"Snapshot: {snapshot['name']} ({i}/{len(snapshots)})")
-        process_snapshot(dropbox_dir, dbx, snapshot)
-
-
-def main(config_file, sleeper=time.sleep):
-
-    config = load_config(config_file)
-
     while True:
         LOG.info("Starting Snapshot backup")
         snapshots = list_snapshots()
-        backup(config, snapshots)
+        backup(dbx, config, snapshots)
         LOG.info("Uploads complete")
         if sleeper(600):
             return

@@ -61,7 +61,7 @@ def test_backup_no_snapshots(tmpdir, requests_mock, caplog):
     p.write(json.dumps({"dropbox_dir": "snapshots", "access_token": "token"}))
     config = upload.load_config(p.strpath)
 
-    upload.backup(config, [])
+    upload.backup(None, config, [])
 
     assert (
         "docker_upload",
@@ -70,42 +70,18 @@ def test_backup_no_snapshots(tmpdir, requests_mock, caplog):
     ) in caplog.record_tuples
 
 
-def test_backup_invalid_token(tmpdir, requests_mock, caplog):
+def test_main_invalid_token(tmpdir, requests_mock, caplog):
 
     # create config file
     p = tmpdir.join("config.json")
     p.write(json.dumps({"dropbox_dir": "snapshots", "access_token": "token"}))
-    config = upload.load_config(p.strpath)
-
-    # Mock hassio
-    data = {
-        "data": {
-            "snapshots": [
-                {
-                    "slug": "ce27de75",
-                    "name": "Automated Backup 2018-09-05",
-                    "date": "2018-09-05T01:00:00.171676+00:00",
-                    "type": "full",
-                    "protected": False,
-                }
-            ]
-        }
-    }
-    requests_mock.get("http://hassio/snapshots", text=json.dumps(data))
 
     requests_mock.post(
         "https://api.dropboxapi.com/2/users/get_current_account",
         exc=exceptions.AuthError("Request ID", "Invalid token"),
     )
 
-    assert (
-        "docker_upload",
-        logging.WARNING,
-        "No snapshots found to backup",
-    ) not in caplog.record_tuples
-
-    snapshots = upload.list_snapshots()
-    upload.backup(config, snapshots)
+    upload.main(p.strpath)
 
     assert (
         "docker_upload",
@@ -124,7 +100,14 @@ def test_main(tmpdir, requests_mock, caplog):
     data = {"data": {"snapshots": []}}
     requests_mock.get("http://hassio/snapshots", text=json.dumps(data))
 
-    upload.main(p.strpath, lambda x: True)
+    class DropboxAPI:
+        def __init__(self, *args, **kwargs):
+            pass
+
+        def users_get_current_account(self):
+            return
+
+    upload.main(p.strpath, sleeper=lambda x: True, DropboxAPI=DropboxAPI)
 
     assert (
         "docker_upload",
