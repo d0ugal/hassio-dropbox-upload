@@ -4,6 +4,7 @@ import logging
 import os
 import pathlib
 import sys
+import time
 
 import requests
 
@@ -158,14 +159,11 @@ def process_snapshot(dropbox_dir, dbx, snapshot):
         LOG.exception("Upload failed")
 
 
-def main(config_file):
+def backup(config, snapshots):
 
-    config = load_config(config_file)
     setup_logging(config)
     dropbox_dir = pathlib.Path(config["dropbox_dir"])
 
-    LOG.info("Starting Snapshot backup")
-    snapshots = list_snapshots()
     LOG.info(f"Backing up {len(snapshots)} snapshots")
     LOG.info(f"Backing up to Dropbox directory: {dropbox_dir}")
 
@@ -184,7 +182,18 @@ def main(config_file):
         LOG.info(f"Snapshot: {snapshot['name']} ({i}/{len(snapshots)})")
         process_snapshot(dropbox_dir, dbx, snapshot)
 
-    LOG.info("Uploads complete")
+
+def main(config_file, sleeper=time.sleep):
+
+    config = load_config(config_file)
+
+    while True:
+        LOG.info("Starting Snapshot backup")
+        snapshots = list_snapshots()
+        backup(config, snapshots)
+        LOG.info("Uploads complete")
+        if sleeper(600):
+            return
 
 
 if __name__ == "__main__":
