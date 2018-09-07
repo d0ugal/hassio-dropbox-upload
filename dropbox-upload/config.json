@@ -17,6 +17,7 @@
     },
     "schema": {
         "access_token": "str",
-        "dropbox_dir": "str"
+        "dropbox_dir": "str",
+        "debug": "bool?"
     }
 }
