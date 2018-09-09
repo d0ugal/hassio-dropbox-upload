@@ -16,7 +16,6 @@ from dropbox import exceptions
 LOG = logging.getLogger("docker_upload")
 BACKUP_DIR = pathlib.Path("/backup/")
 CHUNK_SIZE = 4 * 1024 * 1024
-AUTH_HEADERS = {"X-HASSIO-KEY": os.environ.get("HASSIO_TOKEN")}
 DEFAULT_CONFIG = "/data/options.json"
 
 
@@ -50,7 +49,8 @@ def bytes_to_human(nbytes):
 
 
 def hassio_get(path):
-    r = requests.get(f"http://hassio/{path}", headers=AUTH_HEADERS)
+    auth_headers = {"X-HASSIO-KEY": os.environ.get("HASSIO_TOKEN")}
+    r = requests.get(f"http://hassio/{path}", headers=auth_headers)
     r.raise_for_status()
     j = r.json()
     LOG.debug(j)
