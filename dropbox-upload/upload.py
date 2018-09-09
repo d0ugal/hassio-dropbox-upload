@@ -177,6 +177,21 @@ def backup(dbx, config, snapshots):
         process_snapshot(dropbox_dir, dbx, snapshot)
 
 
+def limit_snapshots(config, snapshots):
+
+    max_snapshots = config.get('max_snapshots')
+
+    if not max_snapshots:
+        LOG.warning("max_snapshots not set. We wont remove old snapshots")
+        return
+
+    if len(snapshots) <= max_snapshots:
+        LOG.warning("Not reached the maximum number of snapshots")
+        return
+
+    LOG.info("Limiting snapshots to the {max_snapshots) most recent")
+
+
 def main(config_file, sleeper=time.sleep, DropboxAPI=dropbox.Dropbox):
 
     config = load_config(config_file)
@@ -191,8 +206,10 @@ def main(config_file, sleeper=time.sleep, DropboxAPI=dropbox.Dropbox):
     while True:
         LOG.info("Starting Snapshot backup")
         snapshots = list_snapshots()
+
         backup(dbx, config, snapshots)
         LOG.info("Uploads complete")
+
         if sleeper(600):
             return
 
