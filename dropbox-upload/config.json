@@ -3,7 +3,7 @@
     "version": "1",
     "slug": "dropbox_upload",
     "description": "Upload snapshots to Dropbox!",
-    "startup": "services",
+    "startup": "application",
     "url": "https://github.com/d0ugal/hassio-dropbox-upload",
     "boot": "auto",
     "hassio_api": null,
