@@ -213,8 +213,6 @@ def main(config_file, sleeper=time.sleep, DropboxAPI=dropbox.Dropbox):
 
             backup(dbx, config, snapshots)
             LOG.info("Uploads complete")
-
-            limit_snapshots(dbx, config, snapshots)
         except Exception:
             LOG.exception("Unhandled error")
 
