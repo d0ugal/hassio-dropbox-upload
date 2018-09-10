@@ -50,6 +50,7 @@ def bytes_to_human(nbytes):
 
 def hassio_get(path):
     auth_headers = {"X-HASSIO-KEY": os.environ.get("HASSIO_TOKEN")}
+    LOG.debug(f"Auth headers: {auth_headers}")
     r = requests.get(f"http://hassio/{path}", headers=auth_headers)
     r.raise_for_status()
     j = r.json()
