@@ -179,7 +179,7 @@ def backup(dbx, config, snapshots):
         process_snapshot(dropbox_dir, dbx, snapshot)
 
 
-def limit_snapshots(config, snapshots):
+def limit_snapshots(dbx, config, snapshots):
 
     max_snapshots = config.get("max_snapshots")
 
@@ -211,6 +211,8 @@ def main(config_file, sleeper=time.sleep, DropboxAPI=dropbox.Dropbox):
 
         backup(dbx, config, snapshots)
         LOG.info("Uploads complete")
+
+        limit_snapshots(dbx, config, snapshots)
 
         if sleeper(600):
             return
