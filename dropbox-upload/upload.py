@@ -165,7 +165,6 @@ def process_snapshot(dropbox_dir, dbx, snapshot):
 
 def backup(dbx, config, snapshots):
 
-    setup_logging(config)
     dropbox_dir = pathlib.Path(config["dropbox_dir"])
 
     LOG.info(f"Backing up {len(snapshots)} snapshots")
@@ -198,6 +197,7 @@ def limit_snapshots(dbx, config, snapshots):
 def main(config_file, sleeper=time.sleep, DropboxAPI=dropbox.Dropbox):
 
     config = load_config(config_file)
+    setup_logging(config)
 
     dbx = DropboxAPI(config["access_token"])
     try:
