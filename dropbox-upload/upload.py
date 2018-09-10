@@ -50,6 +50,7 @@ def bytes_to_human(nbytes):
 
 def hassio_get(path):
     auth_headers = {"X-HASSIO-KEY": os.environ.get("HASSIO_TOKEN")}
+    LOG.debug(f"Auth headers: {auth_headers}")
     r = requests.get(f"http://hassio/{path}", headers=auth_headers)
     r.raise_for_status()
     j = r.json()
@@ -125,6 +126,8 @@ def file_exists(dbx, file_path, dest_path):
 
     dropbox_hash = metadata.content_hash
     local_hash = compute_dropbox_hash(file_path)
+    LOG.debug(f"Dropbox hash: {dropbox_hash}")
+    LOG.debug(f"Local hash: {local_hash}")
     if local_hash == dropbox_hash:
         return True
 
@@ -162,7 +165,6 @@ def process_snapshot(dropbox_dir, dbx, snapshot):
 
 def backup(dbx, config, snapshots):
 
-    setup_logging(config)
     dropbox_dir = pathlib.Path(config["dropbox_dir"])
 
     LOG.info(f"Backing up {len(snapshots)} snapshots")
@@ -177,9 +179,9 @@ def backup(dbx, config, snapshots):
         process_snapshot(dropbox_dir, dbx, snapshot)
 
 
-def limit_snapshots(config, snapshots):
+def limit_snapshots(dbx, config, snapshots):
 
-    max_snapshots = config.get('max_snapshots')
+    max_snapshots = config.get("max_snapshots")
 
     if not max_snapshots:
         LOG.warning("max_snapshots not set. We wont remove old snapshots")
@@ -195,27 +197,30 @@ def limit_snapshots(config, snapshots):
 def main(config_file, sleeper=time.sleep, DropboxAPI=dropbox.Dropbox):
 
     config = load_config(config_file)
+    setup_logging(config)
 
-    dbx = DropboxAPI(config["access_token"])
     try:
+        dbx = DropboxAPI(config["access_token"])
         dbx.users_get_current_account()
     except exceptions.AuthError:
         LOG.error("Invalid access token")
         return
 
     while True:
-        LOG.info("Starting Snapshot backup")
-        snapshots = list_snapshots()
+        try:
+            LOG.info("Starting Snapshot backup")
+            snapshots = list_snapshots()
 
-        backup(dbx, config, snapshots)
-        LOG.info("Uploads complete")
+            backup(dbx, config, snapshots)
+            LOG.info("Uploads complete")
+
+            limit_snapshots(dbx, config, snapshots)
+        except Exception:
+            LOG.exception("Unhandled error")
 
         if sleeper(600):
             return
 
 
 if __name__ == "__main__":
-    try:
-        main(DEFAULT_CONFIG)
-    except Exception:
-        LOG.exception("Unhandled error")
+    main(DEFAULT_CONFIG)
