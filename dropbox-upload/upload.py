@@ -125,6 +125,8 @@ def file_exists(dbx, file_path, dest_path):
 
     dropbox_hash = metadata.content_hash
     local_hash = compute_dropbox_hash(file_path)
+    LOG.debug(f"Dropbox hash: {dropbox_hash}")
+    LOG.debug(f"Local hash: {local_hash}")
     if local_hash == dropbox_hash:
         return True
 
@@ -179,7 +181,7 @@ def backup(dbx, config, snapshots):
 
 def limit_snapshots(config, snapshots):
 
-    max_snapshots = config.get('max_snapshots')
+    max_snapshots = config.get("max_snapshots")
 
     if not max_snapshots:
         LOG.warning("max_snapshots not set. We wont remove old snapshots")
