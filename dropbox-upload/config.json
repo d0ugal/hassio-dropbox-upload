@@ -14,11 +14,15 @@
     ],
     "options": {
         "access_token": "<YOUR_ACCESS_TOKEN>",
-        "dropbox_dir": "<DROPBOX_UPLOAD_LOCATION>"
+        "dropbox_dir": "<DROPBOX_UPLOAD_LOCATION>",
+        "keep": 10,
+        "debug": false
     },
     "schema": {
         "access_token": "str",
         "dropbox_dir": "str",
+        "keep": "int?",
+        "mins_between_backups": "int?",
         "debug": "bool?"
     }
 }

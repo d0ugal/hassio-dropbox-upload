@@ -48,14 +48,23 @@ def bytes_to_human(nbytes):
     return "%s %s" % (f, suffixes[i])
 
 
-def hassio_get(path):
+def hassio_req(method, path):
     auth_headers = {"X-HASSIO-KEY": os.environ.get("HASSIO_TOKEN")}
     LOG.debug(f"Auth headers: {auth_headers}")
-    r = requests.get(f"http://hassio/{path}", headers=auth_headers)
+    r = method(f"http://hassio/{path}", headers=auth_headers)
+    LOG.debug(r)
     r.raise_for_status()
     j = r.json()
     LOG.debug(j)
     return j["data"]
+
+
+def hassio_get(path):
+    return hassio_req(requests.get, path)
+
+
+def hassio_post(path):
+    return hassio_req(requests.post, path)
 
 
 def list_snapshots():
@@ -174,6 +183,10 @@ def backup(dbx, config, snapshots):
         LOG.warning("No snapshots found to backup")
         return
 
+    if config.get("keep") and len(snapshots) > config.get("keep"):
+        LOG.info(f"Only backing up the first {config['keep']} snapshots")
+        snapshots = snapshots[: config["keep"]]
+
     for i, snapshot in enumerate(snapshots, start=1):
         LOG.info(f"Snapshot: {snapshot['name']} ({i}/{len(snapshots)})")
         process_snapshot(dropbox_dir, dbx, snapshot)
@@ -181,17 +194,31 @@ def backup(dbx, config, snapshots):
 
 def limit_snapshots(dbx, config, snapshots):
 
-    max_snapshots = config.get("max_snapshots")
+    keep = config.get("keep")
+    dropbox_dir = pathlib.Path(config["dropbox_dir"])
 
-    if not max_snapshots:
-        LOG.warning("max_snapshots not set. We wont remove old snapshots")
+    if not keep:
+        LOG.warning("keep not set. We wont remove old snapshots")
         return
 
-    if len(snapshots) <= max_snapshots:
-        LOG.warning("Not reached the maximum number of snapshots")
+    if len(snapshots) <= keep:
+        LOG.info("Not reached the maximum number of snapshots")
         return
 
-    LOG.info("Limiting snapshots to the {max_snapshots) most recent")
+    LOG.info(f"Limiting snapshots to the {keep} most recent")
+
+    snapshots.sort(key=lambda x: arrow.get(x["date"]))
+    snapshots.reverse()
+
+    expired_snapshots = snapshots[keep:]
+
+    LOG.info(f"Deleting {len(expired_snapshots)} snapshots")
+
+    for snapshot in expired_snapshots:
+        LOG.info(f"Deleting {snapshot['name']} (slug: {snapshot['slug']}")
+        hassio_post(f"snapshots/{snapshot['slug']}/remove")
+        path = str(dropbox_path(dropbox_dir, snapshot))
+        dbx.files_delete(path)
 
 
 def main(config_file, sleeper=time.sleep, DropboxAPI=dropbox.Dropbox):
@@ -213,10 +240,15 @@ def main(config_file, sleeper=time.sleep, DropboxAPI=dropbox.Dropbox):
 
             backup(dbx, config, snapshots)
             LOG.info("Uploads complete")
+
+            limit_snapshots(dbx, config, snapshots)
+            LOG.info("Snapshot cleanup complete")
         except Exception:
             LOG.exception("Unhandled error")
 
-        if sleeper(600):
+        sleep = config.get("mins_between_backups", 10)
+        LOG.info("Sleeping for {sleep} minutes")
+        if sleeper(sleep * 60):
             return
 
 
