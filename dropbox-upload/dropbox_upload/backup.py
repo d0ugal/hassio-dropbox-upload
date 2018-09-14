@@ -42,12 +42,21 @@ def backup(dbx, config, snapshots):
 
     for i, snapshot in enumerate(snapshots, start=1):
         LOG.info(f"Snapshot: {snapshot['name']} ({i}/{len(snapshots)})")
-        process_snapshot(config, dbx, snapshot)
+        try:
+            process_snapshot(config, dbx, snapshot)
+        except Exception:
+            LOG.exception(
+                "Snapshot backup failed. If this happens after the addon is "
+                "restarted, please open a bug."
+            )
 
 
 def process_snapshot(config, dbx, snapshot):
     path = local_path(snapshot)
     created = arrow.get(snapshot["date"])
+    if not os.path.isfile(path):
+        LOG.warning("The snapshot no longer exists")
+        return
     size = util.bytes_to_human(os.path.getsize(path))
     target = str(dropbox_path(config, snapshot))
     LOG.info(f"Slug: {snapshot['slug']}")

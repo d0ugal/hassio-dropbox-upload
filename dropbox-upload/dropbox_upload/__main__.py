@@ -12,6 +12,9 @@ LOG = logging.getLogger(__name__)
 def main(config_file, sleeper=time.sleep, DropboxAPI=dropbox.Dropbox):
 
     cfg = config.load_config(config_file)
+    copy = cfg.copy()
+    copy["access_token"] = "HIDDEN"
+    LOG.debug(copy)
     config.setup_logging(cfg)
 
     try:

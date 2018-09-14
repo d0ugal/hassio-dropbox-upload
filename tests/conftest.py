@@ -17,6 +17,16 @@ def cfg():
 
 
 @pytest.fixture
+def snapshot(requests_mock):
+    return {
+        "slug": "dbaa2add",
+        "name": "Automated Backup 2018-09-14",
+        "date": "2018-09-14T01:00:00.873481+00:00",
+        "type": "full",
+    }
+
+
+@pytest.fixture
 def snapshots(requests_mock):
 
     now = datetime.datetime.now()
@@ -44,6 +54,9 @@ def dropbox_fake():
             pass
 
         def files_delete(self, path):
+            pass
+
+        def files_upload(self, f, path):
             pass
 
     return DropboxAPI
