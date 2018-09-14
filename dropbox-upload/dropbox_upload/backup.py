@@ -3,6 +3,7 @@ import os
 import pathlib
 
 import arrow
+import jinja2
 
 from . import dropbox, util
 
@@ -14,16 +15,22 @@ def local_path(snapshot):
     return BACKUP_DIR / f"{snapshot['slug']}.tar"
 
 
-def dropbox_path(dropbox_dir, snapshot):
-    return dropbox_dir / f"{snapshot['slug']}.tar"
+def dropbox_path(config, snapshot):
+    dropbox_dir = pathlib.Path(config["dropbox_dir"])
+    if config.get("filename_fmt"):
+        ctx = snapshot.copy()
+        ctx["date"] = arrow.get(ctx["date"]).strftime("%Y-%m-%d %H.%M.%S")
+        template = jinja2.Template(config["filename_fmt"])
+        name = template.render(**ctx)
+    else:
+        name = snapshot["slug"]
+    return dropbox_dir / f"{name}.tar"
 
 
 def backup(dbx, config, snapshots):
 
-    dropbox_dir = pathlib.Path(config["dropbox_dir"])
-
     LOG.info(f"Backing up {len(snapshots)} snapshots")
-    LOG.info(f"Backing up to Dropbox directory: {dropbox_dir}")
+    LOG.info(f"Backing up to Dropbox directory: {config['dropbox_dir']}")
 
     if not snapshots:
         LOG.warning("No snapshots found to backup")
@@ -35,14 +42,14 @@ def backup(dbx, config, snapshots):
 
     for i, snapshot in enumerate(snapshots, start=1):
         LOG.info(f"Snapshot: {snapshot['name']} ({i}/{len(snapshots)})")
-        process_snapshot(dropbox_dir, dbx, snapshot)
+        process_snapshot(config, dbx, snapshot)
 
 
-def process_snapshot(dropbox_dir, dbx, snapshot):
+def process_snapshot(config, dbx, snapshot):
     path = local_path(snapshot)
     created = arrow.get(snapshot["date"])
     size = util.bytes_to_human(os.path.getsize(path))
-    target = str(dropbox_path(dropbox_dir, snapshot))
+    target = str(dropbox_path(config, snapshot))
     LOG.info(f"Slug: {snapshot['slug']}")
     LOG.info(f"Created: {created}")
     LOG.info(f"Size: {size}")

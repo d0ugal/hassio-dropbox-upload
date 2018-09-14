@@ -22,6 +22,7 @@
         "access_token": "str",
         "dropbox_dir": "str",
         "keep": "int?",
+        "filename_fmt": "str?",
         "mins_between_backups": "int?",
         "debug": "bool?"
     }

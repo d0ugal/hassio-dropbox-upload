@@ -1,5 +1,4 @@
 import logging
-import pathlib
 
 import arrow
 
@@ -11,7 +10,6 @@ LOG = logging.getLogger(__name__)
 def limit_snapshots(dbx, config, snapshots):
 
     keep = config.get("keep")
-    dropbox_dir = pathlib.Path(config["dropbox_dir"])
 
     if not keep:
         LOG.warning("keep not set. We wont remove old snapshots")
@@ -33,5 +31,5 @@ def limit_snapshots(dbx, config, snapshots):
     for snapshot in expired_snapshots:
         LOG.info(f"Deleting {snapshot['name']} (slug: {snapshot['slug']}")
         hassio.hassio_post(f"snapshots/{snapshot['slug']}/remove")
-        path = str(backup.dropbox_path(dropbox_dir, snapshot))
+        path = str(backup.dropbox_path(config, snapshot))
         dbx.files_delete(path)

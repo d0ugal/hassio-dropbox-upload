@@ -25,6 +25,8 @@ a directory name.
 {
   "access_token": "ACCESS TOKEN",
   "dropbox_dir": "/hass-snapshots/"
+  "keep": 10,
+  "mins_between_backups": 30
 }
 ```
 
@@ -41,9 +43,6 @@ Here is the automation I use to create a snapshot and upload it to Dropbox.
       - service: hassio.snapshot_full
         data_template:
           name: Automated Backup {{ now().strftime('%Y-%m-%d') }}
-      - service: hassio.addon_start
-        data:
-          addon: 8aef3602_dropbox_upload
 ```
 
 

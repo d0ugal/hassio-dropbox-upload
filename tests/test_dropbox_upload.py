@@ -1,8 +1,7 @@
 import json
 import logging
-import pathlib
 
-from dropbox_upload import backup, config, dropbox, hassio, limit, util
+from dropbox_upload import config, dropbox, hassio, limit, util
 
 
 def test_bytes_to_human():
@@ -19,17 +18,6 @@ def test_load_config(tmpdir):
     p = tmpdir.join("config.json")
     p.write(json.dumps({}))
     assert config.load_config(p.strpath) == {}
-
-
-def test_local_path():
-    expected = pathlib.Path("/backup/SLUG.tar")
-    assert backup.local_path({"slug": "SLUG"}) == expected
-
-
-def test_dropbox_path():
-    dropbox_dir = pathlib.Path("/dropbox_dir/")
-    expected = pathlib.Path("/dropbox_dir/SLUG.tar")
-    assert backup.dropbox_path(dropbox_dir, {"slug": "SLUG"}) == expected
 
 
 def test_setup_logging_normal():
@@ -51,22 +39,6 @@ def test_list_snapshots(requests_mock):
     data = {"data": {"snapshots": []}}
     requests_mock.get("http://hassio/snapshots", text=json.dumps(data))
     assert hassio.list_snapshots() == []
-
-
-def test_backup_no_snapshots(tmpdir, requests_mock, caplog):
-
-    # Create config file
-    p = tmpdir.join("config.json")
-    p.write(json.dumps({"dropbox_dir": "snapshots", "access_token": "token"}))
-    cfg = config.load_config(p.strpath)
-
-    backup.backup(None, cfg, [])
-
-    assert (
-        "dropbox_upload.backup",
-        logging.WARNING,
-        "No snapshots found to backup",
-    ) in caplog.record_tuples
 
 
 def test_limit_snapshots_no_setting(cfg, caplog):
