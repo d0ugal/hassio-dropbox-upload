@@ -37,4 +37,4 @@ jobs:
     - stage: release
       script:
         - echo "$DOCKER_PASSWORD" | docker login -u ${DOCKER_USERNAME} --password-stdin
-        - bash scripts/docker-build.sh
+        - bash scripts/docker-build.sh ${TRAVIS_BUILD_DIR}
