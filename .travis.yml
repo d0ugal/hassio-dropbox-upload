@@ -4,16 +4,37 @@ services:
 language: python
 python:
   - "3.6"
-env:
-  - TOXENV=py36
-  - TOXENV=lint
-  - TOXENV=docker-build ARCH=aarch64
-  - TOXENV=docker-build ARCH=i386
-  - TOXENV=docker-build ARCH=amd64
-  - TOXENV=docker-build ARCH=armhf
 install:
   - pip install -U pip
   - pip install tox
   - pip freeze
 script:
   - tox
+
+stages:
+  - lint
+  - test
+  - docker-build
+  - name: release
+    if: tag IS present
+
+jobs:
+  include:
+    - env: TOXENV=py36
+
+    - stage: lint
+      env: TOXENV=lint
+
+    - stage: docker-build
+      env: TOXENV=docker-build ARCH=aarch64
+    - stage: docker-build
+      env: TOXENV=docker-build ARCH=i386
+    - stage: docker-build
+      env: TOXENV=docker-build ARCH=amd64
+    - stage: docker-build
+      env: TOXENV=docker-build ARCH=armhf
+
+    - stage: release
+      script:
+        - echo "$DOCKER_PASSWORD" | docker login -u ${DOCKER_USERNAME} --password-stdin
+        - bash scripts/docker-build.sh
