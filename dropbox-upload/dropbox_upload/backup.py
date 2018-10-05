@@ -3,7 +3,6 @@ import os
 import pathlib
 
 import arrow
-import jinja2
 
 from . import dropbox, util
 
@@ -17,19 +16,13 @@ def local_path(snapshot):
 
 def dropbox_path(config, snapshot):
     dropbox_dir = pathlib.Path(config["dropbox_dir"])
-    if config.get("filename_fmt"):
-        ctx = snapshot.copy()
-        ctx["date"] = arrow.get(ctx["date"]).strftime("%Y-%m-%d %H.%M.%S")
-        template = jinja2.Template(config["filename_fmt"])
-        name = template.render(**ctx)
-    else:
-        name = snapshot["slug"]
+    name = snapshot["slug"]
     return dropbox_dir / f"{name}.tar"
 
 
 def backup(dbx, config, snapshots):
 
-    LOG.info(f"Backing up {len(snapshots)} snapshots")
+    LOG.info(f"Found {len(snapshots)} snapshots")
     LOG.info(f"Backing up to Dropbox directory: {config['dropbox_dir']}")
 
     if not snapshots:

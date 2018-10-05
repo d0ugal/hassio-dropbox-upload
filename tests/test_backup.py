@@ -1,4 +1,3 @@
-import datetime
 import logging
 import pathlib
 from unittest import mock
@@ -25,21 +24,6 @@ def test_backup_no_snapshots(cfg, caplog):
         logging.WARNING,
         "No snapshots found to backup",
     ) in caplog.record_tuples
-
-
-def test_dropbox_path_date_filenames(cfg):
-    cfg["filename_fmt"] = "{{date}} {{slug}} {{name}}"
-    cfg["dropbox_dir"] = "/dropbox_dir"
-    expected = pathlib.Path(
-        "/dropbox_dir/2018-09-13 19.50.22 SLUG Automated backup.tar"
-    )
-    snapshot = {
-        "slug": "SLUG",
-        "name": "Automated backup",
-        "date": datetime.datetime(2018, 9, 13, 19, 50, 22).isoformat(),
-    }
-    result = backup.dropbox_path(cfg, snapshot)
-    assert result == expected
 
 
 def test_snapshot_deleted(cfg, snapshot, caplog):

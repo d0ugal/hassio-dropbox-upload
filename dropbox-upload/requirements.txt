@@ -1,5 +1,4 @@
 arrow
 dropbox
-jinja2
 requests
 retrace
