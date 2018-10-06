@@ -10,7 +10,7 @@ docker run \
   -v /var/run/docker.sock:/var/run/docker.sock \
   -v "$repo":/docker \
   hassioaddons/build-env:latest \
-  --image "d0ugal/hassio-dropbox-upload-{arch}" \
+  --image "hassioaddons/dropbox-upload-{arch}" \
   --target dropbox-upload \
   --tag-latest \
   --push \
