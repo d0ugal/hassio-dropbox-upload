@@ -1,4 +1,4 @@
-arrow
-dropbox
-requests
-retrace
+arrow==0.12.1
+dropbox==9.0.0
+requests==2.19.1
+retrace==2.2.6
