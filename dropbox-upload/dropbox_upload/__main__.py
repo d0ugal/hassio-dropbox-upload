@@ -6,7 +6,7 @@ from dropbox import exceptions
 
 from . import backup, config, hassio, limit
 
-LOG = logging.getLogger(__name__)
+LOG = logging.getLogger("dropbox_upload.__main__")
 
 
 def main(config_file, sleeper=time.sleep, DropboxAPI=dropbox.Dropbox):
