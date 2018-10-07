@@ -35,17 +35,31 @@ def test_snapshot_deleted(cfg, snapshot, caplog):
     ) in caplog.record_tuples
 
 
-def test_backup_keep_limit(cfg, dropbox_fake, snapshots, caplog):
+def test_snapshot_stats(cfg, snapshot, caplog, tmpdir, dropbox_fake):
+    file_ = tmpdir.mkdir("sub").join("hello.txt")
+    file_.write("testing content 24 bytes" * 1000)
+    with mock.patch("dropbox_upload.backup.local_path") as local_path:
+        local_path.return_value = str(file_)
+        result = backup.process_snapshot(cfg, dropbox_fake(), snapshot)
+    assert result["size_bytes"] == 24000
+    assert result["size_human"] == "23.44 KB"
+
+
+def test_backup_keep_limit(cfg, dropbox_fake, snapshots, caplog, tmpdir):
     caplog.set_level(logging.DEBUG)
     cfg["keep"] = 2
+    file_ = tmpdir.mkdir("sub").join("hello.txt")
+    file_.write("testing content 24 bytes" * 1000)
     with mock.patch("dropbox_upload.backup.local_path") as local_path:
-        local_path.return_value = __file__
-        backup.backup(dropbox_fake(), cfg, snapshots)
+        local_path.return_value = str(file_)
+        result = backup.backup(dropbox_fake(), cfg, snapshots)
     assert (
         "dropbox_upload.backup",
         logging.INFO,
         "Only backing up the first 2 snapshots",
     ) in caplog.record_tuples
+    assert result["size_bytes"] == 24000 * 2
+    assert result["size_human"] == "46.88 KB"
 
 
 def test_backup_file_exists(cfg, dropbox_fake, snapshot, caplog):

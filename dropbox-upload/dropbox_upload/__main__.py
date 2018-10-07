@@ -29,8 +29,10 @@ def main(config_file, sleeper=time.sleep, DropboxAPI=dropbox.Dropbox):
             LOG.info("Starting Snapshot backup")
             snapshots = hassio.list_snapshots()
 
-            backup.backup(dbx, cfg, snapshots)
+            stats = backup.backup(dbx, cfg, snapshots)
+            stats  # make pyflakes think stats is used. It doesn't detect fstring usage.
             LOG.info("Uploads complete")
+            LOG.info("Total size: {stats['size_human']}")
 
             limit.limit_snapshots(dbx, cfg, snapshots)
             LOG.info("Snapshot cleanup complete")
