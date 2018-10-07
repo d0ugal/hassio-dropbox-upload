@@ -33,15 +33,22 @@ def backup(dbx, config, snapshots):
         LOG.info(f"Only backing up the first {config['keep']} snapshots")
         snapshots = snapshots[: config["keep"]]
 
+    total_size = 0
+
     for i, snapshot in enumerate(snapshots, start=1):
         LOG.info(f"Snapshot: {snapshot['name']} ({i}/{len(snapshots)})")
         try:
-            process_snapshot(config, dbx, snapshot)
+            stats = process_snapshot(config, dbx, snapshot)
+            if not stats:
+                continue
+            total_size += stats["size_bytes"]
         except Exception:
             LOG.exception(
                 "Snapshot backup failed. If this happens after the addon is "
                 "restarted, please open a bug."
             )
+
+    return {"size_bytes": total_size, "size_human": util.bytes_to_human(total_size)}
 
 
 def process_snapshot(config, dbx, snapshot):
@@ -50,16 +57,18 @@ def process_snapshot(config, dbx, snapshot):
     if not os.path.isfile(path):
         LOG.warning("The snapshot no longer exists")
         return
-    size = util.bytes_to_human(os.path.getsize(path))
+    bytes_ = os.path.getsize(path)
+    size = util.bytes_to_human(bytes_)
     target = str(dropbox_path(config, snapshot))
-    LOG.info(f"Slug: {snapshot['slug']}")
+    LOG.info(f"Slug: {snapshot['slug']} Size: {size}")
     LOG.info(f"Created: {created}")
-    LOG.info(f"Size: {size}")
     LOG.info(f"Uploading to: {target}")
     try:
         if dropbox.file_exists(dbx, path, target):
             LOG.info("Already found in Dropbox with the same hash")
-            return
-        dropbox.upload_file(dbx, path, target)
+        else:
+            dropbox.upload_file(dbx, path, target)
     except Exception:
         LOG.exception("Upload failed")
+
+    return {"size_bytes": bytes_, "size_human": size}
