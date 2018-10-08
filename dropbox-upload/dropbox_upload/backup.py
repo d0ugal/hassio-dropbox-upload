@@ -60,9 +60,10 @@ def process_snapshot(config, dbx, snapshot):
     bytes_ = os.path.getsize(path)
     size = util.bytes_to_human(bytes_)
     target = str(dropbox_path(config, snapshot))
-    LOG.info(f"Slug: {snapshot['slug']} Size: {size}")
+    LOG.debug(f"Slug: {snapshot['slug']}")
+    LOG.info(f"Size: {size}")
     LOG.info(f"Created: {created}")
-    LOG.info(f"Uploading to: {target}")
+    LOG.debug(f"Uploading to: {target}")
     try:
         if dropbox.file_exists(dbx, path, target):
             LOG.info("Already found in Dropbox with the same hash")
