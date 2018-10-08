@@ -32,7 +32,7 @@ def main(config_file, sleeper=time.sleep, DropboxAPI=dropbox.Dropbox):
             stats = backup.backup(dbx, cfg, snapshots)
             stats  # make pyflakes think stats is used. It doesn't detect fstring usage.
             LOG.info("Uploads complete")
-            LOG.info("Total size: {stats['size_human']}")
+            LOG.info(f"Total size: {stats['size_human']}")
 
             limit.limit_snapshots(dbx, cfg, snapshots)
             LOG.info("Snapshot cleanup complete")
@@ -40,7 +40,7 @@ def main(config_file, sleeper=time.sleep, DropboxAPI=dropbox.Dropbox):
             LOG.exception("Unhandled error")
 
         sleep = cfg.get("mins_between_backups", 10)
-        LOG.info("Sleeping for {sleep} minutes")
+        LOG.info(f"Sleeping for {sleep} minutes")
         if sleeper(sleep * 60):
             return
 
