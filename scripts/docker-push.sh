@@ -12,5 +12,5 @@ docker run -it --rm --privileged --name "dropbox-upload" \
     --image "d0ugal/hassio-dropbox-upload-{arch}" \
     --target "dropbox-upload" \
     --git \
-    --all \
+    --${ARCH:-all} \
     --push
