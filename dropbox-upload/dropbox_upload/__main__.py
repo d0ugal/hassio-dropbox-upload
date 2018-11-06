@@ -2,6 +2,7 @@ import logging
 import time
 
 import dropbox
+import retrace
 from dropbox import exceptions
 
 from . import backup, config, hassio, limit
@@ -36,7 +37,7 @@ def main(config_file, sleeper=time.sleep, DropboxAPI=dropbox.Dropbox):
 
             limit.limit_snapshots(dbx, cfg, snapshots)
             LOG.info("Snapshot cleanup complete")
-        except Exception:
+        except (retrace.RetraceException, Exception):
             LOG.exception("Unhandled error")
 
         sleep = cfg.get("mins_between_backups", 10)
