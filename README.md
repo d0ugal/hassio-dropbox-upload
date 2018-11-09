@@ -43,6 +43,7 @@ Here is the automation I use to create a snapshot and upload it to Dropbox.
       - service: hassio.snapshot_full
         data_template:
           name: Automated Backup {{ now().strftime('%Y-%m-%d') }}
+          password: !secret snapshot_password
 ```
 
 
