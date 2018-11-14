@@ -18,7 +18,7 @@
         "dropbox_dir": "/snapshots",
         "keep": 10,
         "mins_between_backups": 60,
-        "filename": "snapshot_name",
+        "filename": "snapshot_slug",
         "debug": false
     },
     "schema": {
