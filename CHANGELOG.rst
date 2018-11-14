@@ -1,3 +1,12 @@
+Dropbox_Upload 1.1.1 (2018-11-14)
+=================================
+
+Bugfixes
+--------
+
+- Default to "snapshot_slug" so we don't switch over all users as they upgrade (#37)
+
+
 Dropbox_Upload 1.1.0 (2018-11-14)
 =================================
 
