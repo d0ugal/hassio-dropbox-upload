@@ -2,6 +2,8 @@ import logging
 import pathlib
 from unittest import mock
 
+import pytest
+
 from dropbox_upload import backup
 
 
@@ -10,10 +12,25 @@ def test_local_path():
     assert backup.local_path({"slug": "SLUG"}) == expected
 
 
-def test_dropbox_path(cfg):
+def test_dropbox_path_invalid_config():
+    cfg = {"dropbox_dir": "/"}
+    with pytest.raises(ValueError):
+        backup.dropbox_path(cfg, {"slug": "SLUG"})
+
+
+def test_dropbox_path_slug(cfg):
     cfg["dropbox_dir"] = "/dropbox_dir"
+    cfg["filename"] = "snapshot_slug"
     expected = pathlib.Path("/dropbox_dir/SLUG.tar")
     assert backup.dropbox_path(cfg, {"slug": "SLUG"}) == expected
+
+
+def test_dropbox_path_name(cfg):
+    cfg["dropbox_dir"] = "/dropbox_dir"
+    cfg["filename"] = "snapshot_name"
+    snapshot = {"name": "Automated Backup 2018-11-14"}
+    expected = pathlib.Path("/dropbox_dir/") / f"{snapshot['name']}.tar"
+    assert backup.dropbox_path(cfg, snapshot) == expected
 
 
 def test_backup_no_snapshots(cfg, caplog):
@@ -35,7 +52,7 @@ def test_snapshot_deleted(cfg, snapshot, caplog):
     ) in caplog.record_tuples
 
 
-def test_snapshot_stats(cfg, snapshot, caplog, tmpdir, dropbox_fake):
+def test_snapshot_stats(cfg, snapshot, tmpdir, dropbox_fake):
     file_ = tmpdir.mkdir("sub").join("hello.txt")
     file_.write("testing content 24 bytes" * 1000)
     with mock.patch("dropbox_upload.backup.local_path") as local_path:
@@ -73,4 +90,21 @@ def test_backup_file_exists(cfg, dropbox_fake, snapshot, caplog):
         "dropbox_upload.backup",
         logging.INFO,
         "Already found in Dropbox with the same hash",
+    ) in caplog.record_tuples
+
+
+def test_backup_password_warning(cfg, dropbox_fake, snapshot_unprotected, caplog):
+    caplog.set_level(logging.WARNING)
+    with mock.patch("dropbox_upload.dropbox.file_exists") as file_exists:
+        with mock.patch("dropbox_upload.backup.local_path"):
+            file_exists.return_value = True
+            backup.process_snapshot(cfg, None, snapshot_unprotected)
+    assert (
+        "dropbox_upload.backup",
+        logging.WARNING,
+        (
+            f"Snapshot '{snapshot_unprotected['name']}' is not password "
+            "protected. Always try to use passwords, particulary when "
+            "uploading all your data to a snapshot to a third party."
+        ),
     ) in caplog.record_tuples

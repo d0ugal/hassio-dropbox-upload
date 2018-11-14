@@ -11,6 +11,8 @@ Add this repository URL in Hass.io:
 
 ## Configuration
 
+### Dropbox
+
 You will need to create a [Dropbox app](https://www.dropbox.com/developers/apps)
 
 1. Choose `Dropbox API`
@@ -18,15 +20,30 @@ You will need to create a [Dropbox app](https://www.dropbox.com/developers/apps)
 3. Give it a unique name, this can be anything
 4. Click `Generate` under "Generated access token" and copy the token.
 
-After that, the config is simple. You just need to specify the access token and
-a directory name.
+
+### All Configuration Options
+
+
+| Options              	| Default       	| Description                                                                                                                      	|
+|----------------------	|---------------	|----------------------------------------------------------------------------------------------------------------------------------	|
+| access_token         	|               	| Dropbox API Access Token. Required.                                                                                              	|
+| dropbox_dir          	| "/snapshots"  	| The directory name in dropbox to upload snapshots.  Must start with a forward slash.                                             	|
+| keep                 	| 10            	| The number of snapshots to keep. Once the limit is reached,  older snapshots will be removed from Hass.io and Dropbox.           	|
+| mins_between_backups 	| 60            	| How often, in minutes, should the addon check for new backups.                                                                   	|
+| filename             	| snapshot_slug 	| What filename strategy should be used in Dropbox? Can be either  "snapshot_name" or "snapshot_slug".                             	|
+| debug                	| false         	| A flag to enable/disable verbose logging. If you are  having issues, change this to True and include the output  in bug reports. 	|
+
+
+### Full Configuration Example
 
 ```
 {
-  "access_token": "ACCESS TOKEN",
-  "dropbox_dir": "/hass-snapshots/"
+  "access_token": "<YOUR_ACCESS_TOKEN>",
+  "dropbox_dir": "/snapshots",
   "keep": 10,
-  "mins_between_backups": 30
+  "mins_between_backups": 60,
+  "filename": "snapshot_name",
+  "debug": false
 }
 ```
 

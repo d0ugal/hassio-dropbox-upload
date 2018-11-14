@@ -1,6 +1,6 @@
 {
     "name": "Dropbox Upload",
-    "version": "1.0.13",
+    "version": "1.1.0",
     "slug": "dropbox_upload",
     "description": "Upload snapshots to Dropbox!",
     "startup": "application",
@@ -17,7 +17,8 @@
         "access_token": "<YOUR_ACCESS_TOKEN>",
         "dropbox_dir": "/snapshots",
         "keep": 10,
-        "mins_between_backups": 10,
+        "mins_between_backups": 60,
+        "filename": "snapshot_name",
         "debug": false
     },
     "schema": {
@@ -25,6 +26,7 @@
         "dropbox_dir": "str",
         "keep": "int?",
         "mins_between_backups": "int?",
+        "filename": "str",
         "debug": "bool?"
     }
 }
