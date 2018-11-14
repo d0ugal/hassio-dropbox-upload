@@ -16,7 +16,16 @@ def local_path(snapshot):
 
 def dropbox_path(config, snapshot):
     dropbox_dir = pathlib.Path(config["dropbox_dir"])
-    name = snapshot["slug"]
+
+    if "filename" in config and config["filename"] == "snapshot_slug":
+        name = snapshot["slug"]
+    elif "filename" in config and config["filename"] == "snapshot_name":
+        name = snapshot["name"]
+    else:
+        raise ValueError(
+            "Unknown value for the filename config: {config.get('filename')}"
+        )
+
     return dropbox_dir / f"{name}.tar"
 
 

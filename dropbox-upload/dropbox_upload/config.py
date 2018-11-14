@@ -25,6 +25,16 @@ def validate(cfg):
     if not cfg["dropbox_dir"]:
         _e("The dropbox_dir can't be an empty string, it must be at least '/'")
 
+    if "filename" not in cfg:
+        cfg["filename"] = "snapshot_slug"
+
+    if not cfg["filename"] in ["snapshot_name", "snapshot_slug"]:
+        _e(
+            "The `filename` config setting must equal either 'snapshot_name' "
+            "or 'snapshot_slug'. This is what it will use for the filename in "
+            "dropbox."
+        )
+
     if errored:
         raise exceptions.InvalidConfig()
 

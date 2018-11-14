@@ -13,6 +13,7 @@ def cfg():
         "access_token": "token",
         "debug": True,
         "keep": 100,
+        "filename": "snapshot_slug",
     }
 
 

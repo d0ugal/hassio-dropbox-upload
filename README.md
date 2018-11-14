@@ -19,14 +19,16 @@ You will need to create a [Dropbox app](https://www.dropbox.com/developers/apps)
 4. Click `Generate` under "Generated access token" and copy the token.
 
 After that, the config is simple. You just need to specify the access token and
-a directory name.
+a directory name. There are also a few other settings you can tweak.
 
 ```
 {
-  "access_token": "ACCESS TOKEN",
-  "dropbox_dir": "/hass-snapshots/"
+  "access_token": "<YOUR_ACCESS_TOKEN>",
+  "dropbox_dir": "/snapshots",
   "keep": 10,
-  "mins_between_backups": 30
+  "mins_between_backups": 60,
+  "filename": "snapshot_name",
+  "debug": false
 }
 ```
 

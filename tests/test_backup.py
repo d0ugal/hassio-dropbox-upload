@@ -2,6 +2,8 @@ import logging
 import pathlib
 from unittest import mock
 
+import pytest
+
 from dropbox_upload import backup
 
 
@@ -10,10 +12,25 @@ def test_local_path():
     assert backup.local_path({"slug": "SLUG"}) == expected
 
 
-def test_dropbox_path(cfg):
+def test_dropbox_path_invalid_config():
+    cfg = {"dropbox_dir": "/"}
+    with pytest.raises(ValueError):
+        backup.dropbox_path(cfg, {"slug": "SLUG"})
+
+
+def test_dropbox_path_slug(cfg):
     cfg["dropbox_dir"] = "/dropbox_dir"
+    cfg["filename"] = "snapshot_slug"
     expected = pathlib.Path("/dropbox_dir/SLUG.tar")
     assert backup.dropbox_path(cfg, {"slug": "SLUG"}) == expected
+
+
+def test_dropbox_path_name(cfg):
+    cfg["dropbox_dir"] = "/dropbox_dir"
+    cfg["filename"] = "snapshot_name"
+    snapshot = {"name": "Automated Backup 2018-11-14"}
+    expected = pathlib.Path("/dropbox_dir/") / f"{snapshot['name']}.tar"
+    assert backup.dropbox_path(cfg, snapshot) == expected
 
 
 def test_backup_no_snapshots(cfg, caplog):
