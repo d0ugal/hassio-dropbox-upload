@@ -1,0 +1,4 @@
+[tool.towncrier]
+    package = "dropbox_upload"
+    package_dir = "dropbox-upload"
+    filename = "CHANGELOG.rst"
