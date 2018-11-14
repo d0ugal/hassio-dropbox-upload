@@ -18,6 +18,8 @@ def main(config_file, sleeper=time.sleep, DropboxAPI=dropbox.Dropbox):
     LOG.debug(copy)
     config.setup_logging(cfg)
 
+    config.validate(cfg)
+
     try:
         dbx = DropboxAPI(cfg["access_token"])
         dbx.users_get_current_account()
