@@ -57,6 +57,12 @@ def process_snapshot(config, dbx, snapshot):
     if not os.path.isfile(path):
         LOG.warning("The snapshot no longer exists")
         return
+    if not snapshot.get("protected"):
+        LOG.warning(
+            f"Snapshot '{snapshot['name']}' is not password protected. Always "
+            "try to use passwords, particulary when uploading all your data "
+            "to a snapshot to a third party."
+        )
     bytes_ = os.path.getsize(path)
     size = util.bytes_to_human(bytes_)
     target = str(dropbox_path(config, snapshot))

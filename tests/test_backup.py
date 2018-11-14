@@ -35,7 +35,7 @@ def test_snapshot_deleted(cfg, snapshot, caplog):
     ) in caplog.record_tuples
 
 
-def test_snapshot_stats(cfg, snapshot, caplog, tmpdir, dropbox_fake):
+def test_snapshot_stats(cfg, snapshot, tmpdir, dropbox_fake):
     file_ = tmpdir.mkdir("sub").join("hello.txt")
     file_.write("testing content 24 bytes" * 1000)
     with mock.patch("dropbox_upload.backup.local_path") as local_path:
@@ -73,4 +73,21 @@ def test_backup_file_exists(cfg, dropbox_fake, snapshot, caplog):
         "dropbox_upload.backup",
         logging.INFO,
         "Already found in Dropbox with the same hash",
+    ) in caplog.record_tuples
+
+
+def test_backup_password_warning(cfg, dropbox_fake, snapshot_unprotected, caplog):
+    caplog.set_level(logging.WARNING)
+    with mock.patch("dropbox_upload.dropbox.file_exists") as file_exists:
+        with mock.patch("dropbox_upload.backup.local_path"):
+            file_exists.return_value = True
+            backup.process_snapshot(cfg, None, snapshot_unprotected)
+    assert (
+        "dropbox_upload.backup",
+        logging.WARNING,
+        (
+            f"Snapshot '{snapshot_unprotected['name']}' is not password "
+            "protected. Always try to use passwords, particulary when "
+            "uploading all your data to a snapshot to a third party."
+        ),
     ) in caplog.record_tuples
