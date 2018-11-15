@@ -102,9 +102,21 @@ def test_backup_password_warning(cfg, dropbox_fake, snapshot_unprotected, caplog
     assert (
         "dropbox_upload.backup",
         logging.WARNING,
-        (
-            f"Snapshot '{snapshot_unprotected['name']}' is not password "
-            "protected. Always try to use passwords, particulary when "
-            "uploading all your data to a snapshot to a third party."
-        ),
+        f"Snapshot '{snapshot_unprotected['name']}' is not password "
+        "protected. Always try to use passwords, particulary when "
+        "uploading all your data to a snapshot to a third party.",
+    ) in caplog.record_tuples
+
+
+def test_backup_unique_name_check(cfg, snapshot, caplog):
+    caplog.set_level(logging.ERROR)
+    snapshots = [snapshot] * 3
+    cfg["filename"] = "snapshot_name"
+    backup.backup(None, cfg, snapshots)
+    assert (
+        "dropbox_upload.backup",
+        logging.ERROR,
+        "Snapshot names are not unique. This is incompatible saving snapshots "
+        "by name in Dropbox. Names used more than once: "
+        '"Automated Backup 2018-09-14"',
     ) in caplog.record_tuples

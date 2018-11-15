@@ -1,6 +1,7 @@
 import logging
 import os
 import pathlib
+from collections import Counter
 
 import arrow
 
@@ -37,6 +38,17 @@ def backup(dbx, config, snapshots):
     if not snapshots:
         LOG.warning("No snapshots found to backup")
         return
+
+    if config["filename"] == "snapshot_name":
+        names = Counter(s["name"] for s in snapshots)
+        if len(names) < len(snapshots):
+            dupes = ", ".join(f'"{s[0]}"' for s in names.items() if s[1] > 0)
+            LOG.error(
+                "Snapshot names are not unique. This is incompatible saving "
+                "snapshots by name in Dropbox. Names used more than once: "
+                f"{dupes}"
+            )
+            return
 
     if config.get("keep") and len(snapshots) > config.get("keep"):
         LOG.info(f"Only backing up the first {config['keep']} snapshots")
