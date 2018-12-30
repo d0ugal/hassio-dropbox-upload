@@ -15,7 +15,7 @@ def upload_file(dbx, file_path, dest_path):
     f = open(file_path, "rb")
     file_size = os.path.getsize(file_path)
     if file_size <= CHUNK_SIZE:
-        return dbx.files_upload(f, dest_path)
+        return dbx.files_upload(f.read(), dest_path)
 
     upload_session_start_result = dbx.files_upload_session_start(f.read(CHUNK_SIZE))
     cursor = dropbox.files.UploadSessionCursor(
