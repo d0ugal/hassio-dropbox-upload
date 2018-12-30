@@ -1,3 +1,12 @@
+Dropbox_Upload 1.1.2 (2018-12-30)
+=================================
+
+Bugfixes
+--------
+
+- Fix errors when uploading to DropBox  (#43)
+
+
 Dropbox_Upload 1.1.1 (2018-11-14)
 =================================
 
