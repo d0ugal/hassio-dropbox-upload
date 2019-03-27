@@ -33,7 +33,9 @@ jobs:
       env: TOXENV=docker-build ARCH=amd64
     - stage: docker-build
       env: TOXENV=docker-build ARCH=armhf
-
+    - stage: docker-build
+      env: TOXENV=docker-build ARCH=armv7
+      
     - stage: release
       env: TOXENV=docker-build ARCH=aarch64
       script:
@@ -51,6 +53,11 @@ jobs:
         - bash scripts/docker-push.sh ${TRAVIS_BUILD_DIR}
     - stage: release
       env: TOXENV=docker-build ARCH=armhf
+      script:
+        - echo "$DOCKER_PASSWORD" | docker login -u ${DOCKER_USERNAME} --password-stdin
+        - bash scripts/docker-push.sh ${TRAVIS_BUILD_DIR}
+    - stage: release
+      env: TOXENV=docker-build ARCH=armv7
       script:
         - echo "$DOCKER_PASSWORD" | docker login -u ${DOCKER_USERNAME} --password-stdin
         - bash scripts/docker-push.sh ${TRAVIS_BUILD_DIR}
