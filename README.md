@@ -1,3 +1,5 @@
+[![Build Status](https://api.travis-ci.org/d0ugal/hassio-dropbox-upload.svg?branch=master)](https://travis-ci.org/d0ugal/hassio-dropbox-upload)
+
 # Hass.io Dropbox Uploader
 
 This Hass.io add-on provides a simple way to upload your snapshots to Dropbox.
