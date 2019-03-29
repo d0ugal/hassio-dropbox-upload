@@ -1,3 +1,9 @@
+Dropbox_Upload 1.1.4 (2019-03-29)
+=================================
+
+- Fixed an issue with the 1.1.3 release. The version hadn't been updated.
+
+
 Dropbox_Upload 1.1.3 (2019-03-29)
 =================================
 
