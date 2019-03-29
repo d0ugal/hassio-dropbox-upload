@@ -1,3 +1,12 @@
+Dropbox_Upload 1.1.3 (2019-03-29)
+=================================
+
+Bugfixes
+--------
+
+- Lock in the supported architectures (#53)
+
+
 Dropbox_Upload 1.1.2 (2018-12-30)
 =================================
 
