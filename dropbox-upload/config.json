@@ -28,7 +28,7 @@
         "debug": false
     },
     "schema": {
-        "access_token": "str",
+        "access_token": "match(^!secret [a-zA-Z0-9_\-]+$|^[a-zA-Z0-9\\d](?:[a-zA-Z0-9\\d]|-(?=[a-zA-Z0-9\\d])){0,32}$)",
         "dropbox_dir": "str",
         "keep": "int?",
         "mins_between_backups": "int?",
