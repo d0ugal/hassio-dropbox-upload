@@ -2,3 +2,4 @@ arrow==0.12.1
 dropbox==9.0.0
 requests==2.20.0
 retrace==2.2.6
+sentry-sdk==0.16.4

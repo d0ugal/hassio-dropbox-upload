@@ -1,7 +1,6 @@
 import json
 
 import pytest
-
 from dropbox_upload import config, exceptions
 
 

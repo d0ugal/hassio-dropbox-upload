@@ -13,9 +13,17 @@ LOG = logging.getLogger("dropbox_upload.__main__")
 def main(config_file, sleeper=time.sleep, DropboxAPI=dropbox.Dropbox):
 
     cfg = config.load_config(config_file)
+
+    if 'sentry_dsn' in cfg:
+        LOG.info("Sentry configured")
+        import sentry_sdk
+        sentry_sdk.init(cfg["sentry_dsn"])
+
     copy = cfg.copy()
     copy["access_token"] = "HIDDEN"
+    copy["sentry_dsn"] = "HIDDEN"
     LOG.debug(copy)
+
     config.setup_logging(cfg)
 
     config.validate(cfg)

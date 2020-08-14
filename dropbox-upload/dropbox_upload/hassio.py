@@ -1,9 +1,8 @@
 import logging
 import os
 
-import requests
-
 import arrow
+import requests
 
 LOG = logging.getLogger(__name__)
 

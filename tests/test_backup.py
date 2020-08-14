@@ -3,7 +3,6 @@ import pathlib
 from unittest import mock
 
 import pytest
-
 from dropbox_upload import backup
 
 

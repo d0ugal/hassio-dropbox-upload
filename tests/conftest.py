@@ -2,7 +2,6 @@ import datetime
 import json
 
 import pytest
-
 from dropbox_upload import hassio
 
 

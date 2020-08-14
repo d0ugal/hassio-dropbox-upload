@@ -1,6 +1,6 @@
 {
     "name": "Dropbox Upload",
-    "version": "1.1.4",
+    "version": "1.2.0",
     "slug": "dropbox_upload",
     "description": "Upload snapshots to Dropbox!",
     "startup": "application",
@@ -33,6 +33,7 @@
         "keep": "int?",
         "mins_between_backups": "int?",
         "filename": "str",
-        "debug": "bool?"
+        "debug": "bool?",
+        "sentry_dsn": "str?"
     }
 }

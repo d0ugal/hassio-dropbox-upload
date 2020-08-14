@@ -9,6 +9,11 @@ LOG = logging.getLogger(__name__)
 CHUNK_SIZE = 4 * 1024 * 1024
 
 
+@retrace.retry(limit=10)
+def session_append(dbx, contents, session_id, offset):
+    dbx.files_upload_session_append(contents, session_id, offset)
+
+
 @retrace.retry(limit=4)
 def upload_file(dbx, file_path, dest_path):
 
@@ -33,9 +38,7 @@ def upload_file(dbx, file_path, dest_path):
         if (file_size - f.tell()) <= CHUNK_SIZE:
             dbx.files_upload_session_finish(f.read(CHUNK_SIZE), cursor, commit)
         else:
-            dbx.files_upload_session_append(
-                f.read(CHUNK_SIZE), cursor.session_id, cursor.offset
-            )
+            session_append(dbx, f.read(CHUNK_SIZE), cursor.session_id, cursor.offset)
             cursor.offset = f.tell()
     LOG.info("100 %")
 

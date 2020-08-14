@@ -1,3 +1,10 @@
+Dropbox_Upload 1.2.0 (2020-08-15)
+=================================
+
+- Add the sentry_dsn configuration option
+- Improve retrying logic when there is a timeout uploading a individual chunk
+
+
 Dropbox_Upload 1.1.4 (2019-03-29)
 =================================
 
