@@ -11,7 +11,11 @@ CHUNK_SIZE = 4 * 1024 * 1024
 
 @retrace.retry(limit=10)
 def session_append(dbx, contents, session_id, offset):
-    dbx.files_upload_session_append(contents, session_id, offset)
+    try:
+        dbx.files_upload_session_append(contents, session_id, offset)
+    except:
+        LOG.debug("Chunk failed: {}".fomrat(offset))
+        raise
 
 
 @retrace.retry(limit=4)
