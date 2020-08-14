@@ -16,9 +16,10 @@ def main(config_file, sleeper=time.sleep, DropboxAPI=dropbox.Dropbox):
 
     config.setup_logging(cfg)
 
-    if 'sentry_dsn' in cfg:
+    if "sentry_dsn" in cfg:
         LOG.info("Sentry configured")
         import sentry_sdk
+
         sentry_sdk.init(cfg["sentry_dsn"])
 
     copy = cfg.copy()
