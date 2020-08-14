@@ -35,7 +35,7 @@ def upload_file(dbx, file_path, dest_path):
     while f.tell() < file_size:
         percentage = round((f.tell() / file_size) * 100)
 
-        if not prev or percentage > prev + 5:
+        if prev is None or percentage > prev + 5:
             LOG.info(f"{percentage:3} %")
             prev = percentage
 
