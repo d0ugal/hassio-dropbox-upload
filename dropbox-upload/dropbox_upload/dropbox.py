@@ -9,7 +9,7 @@ LOG = logging.getLogger(__name__)
 CHUNK_SIZE = 4 * 1024 * 1024
 
 
-@retrace.retry(limit=4)
+@retrace.retry(limit=10)
 def upload_file(dbx, file_path, dest_path):
 
     f = open(file_path, "rb")
