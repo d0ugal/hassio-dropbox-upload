@@ -3,7 +3,6 @@ import time
 
 import dropbox
 import retrace
-from dropbox import exceptions
 
 from . import backup, config, hassio, limit
 
@@ -33,12 +32,8 @@ def main(config_file, sleeper=time.sleep, DropboxAPI=dropbox.Dropbox):
 
     config.validate(cfg)
 
-    try:
-        dbx = DropboxAPI(cfg["access_token"])
-        dbx.users_get_current_account()
-    except exceptions.AuthError:
-        LOG.error("Invalid access token")
-        return
+    dbx = DropboxAPI(cfg["access_token"])
+    dbx.users_get_current_account()
 
     while True:
         try:
