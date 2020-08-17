@@ -6,7 +6,7 @@ import dropbox
 import retrace
 
 LOG = logging.getLogger(__name__)
-CHUNK_SIZE = 4 * 1024 * 1024
+CHUNK_SIZE = 1024 * 1024
 
 
 @retrace.retry(limit=10)
