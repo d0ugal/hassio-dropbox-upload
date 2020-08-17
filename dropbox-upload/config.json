@@ -1,6 +1,6 @@
 {
     "name": "Dropbox Upload",
-    "version": "1.2.8",
+    "version": "1.2.9",
     "slug": "dropbox_upload",
     "description": "Upload snapshots to Dropbox!",
     "startup": "application",
