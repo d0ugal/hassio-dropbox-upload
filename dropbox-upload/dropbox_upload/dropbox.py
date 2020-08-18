@@ -33,10 +33,15 @@ def upload_file(dbx, file_path, dest_path):
         if (file_size - f.tell()) <= CHUNK_SIZE:
             dbx.files_upload_session_finish(f.read(CHUNK_SIZE), cursor, commit)
         else:
-            dbx.files_upload_session_append(
-                f.read(CHUNK_SIZE), cursor.session_id, cursor.offset
-            )
-            cursor.offset = f.tell()
+            try:
+                dbx.files_upload_session_append_v2(f.read(CHUNK_SIZE), cursor)
+                cursor.offset = f.tell()
+            except dropbox.exceptions.ApiError as ex:
+                if ex.error.is_incorrect_offset():
+                    correct_offset = ex.error.get_incorrect_offset().correct_offset
+                    cursor.offset = correct_offset
+                    f.seek(correct_offset)
+
     LOG.info("100 %")
 
 
