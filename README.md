@@ -20,7 +20,8 @@ You will need to create a [Dropbox app](https://www.dropbox.com/developers/apps)
 1. Choose `Dropbox API`
 2. Either type of Dropbox app should work (Full or App directory)
 3. Give it a unique name, this can be anything
-4. Click `Generate` under "Generated access token" and copy the token.
+4. Set the following scopes in the Permission tab (you need to do it *before* generating the token).
+5. Click `Generate` under "Generated access token" and copy the token.
 
 
 ### All Configuration Options
