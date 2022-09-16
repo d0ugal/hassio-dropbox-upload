@@ -29,7 +29,7 @@ def limit_snapshots(dbx, config, snapshots):
     LOG.info(f"Deleting {len(expired_snapshots)} snapshots")
 
     for snapshot in expired_snapshots:
-        LOG.info(f"Deleting {snapshot['name']} (slug: {snapshot['slug']}")
+        LOG.info(f"Deleting {snapshot['name']} (slug: {snapshot['slug']})")
         hassio.hassio_delete(f"backups/{snapshot['slug']}")
         path = str(backup.dropbox_path(config, snapshot))
         dbx.files_delete(path)
