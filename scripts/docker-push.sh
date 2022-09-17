@@ -6,16 +6,11 @@ set -x
 repo=$1;
 
 docker run \
-  -it \
   --rm \
   --privileged \
-  --name "dropbox-upload" \
   -v /var/run/docker.sock:/var/run/docker.sock \
   -v ~/.docker:/root/.docker \
-  -v "${repo}":/docker \
-  hassioaddons/build-env:latest \
-  --image "d0ugal/hassio-dropbox-upload-{arch}" \
-  --target "dropbox-upload" \
-  --git \
-  --${ARCH:-all} \
-  --push
+  -v "${repo}/dropbox-upload":/data \
+  homeassistant/amd64-builder \
+  --all \
+  -t /data
