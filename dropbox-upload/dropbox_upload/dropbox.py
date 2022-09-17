@@ -61,7 +61,7 @@ def file_exists(dbx, file_path, dest_path):
     try:
         metadata = dbx.files_get_metadata(dest_path)
     except Exception:
-        LOG.info("No existing snapshot in dropox with this name")
+        LOG.info("No existing snapshot in dropbox with this name")
         return False
 
     dropbox_hash = metadata.content_hash

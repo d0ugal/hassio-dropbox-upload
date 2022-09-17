@@ -3,12 +3,27 @@ FROM $BUILD_FROM
 
 ENV LANG C.UTF-8
 
-RUN apk add --no-cache python3 python3-dev py-pip
-ADD . /app
+
+COPY . /app
 WORKDIR /app
-RUN pip3 install -U pip
-RUN pip3 install -r requirements.txt
-CMD python3 -m dropbox_upload
+RUN \
+    apk add --no-cache\
+        python3 \
+        py-pip \
+    \
+    && apk add --no-cache --virtual .build-dependencies\
+        python3-dev \
+    \
+    && pip3 install -r requirements.txt \
+    \
+    && apk del --no-cache --purge .build-dependencies \
+    \
+    && rm -f -r \
+        /requirements.txt \
+    \
+    && chmod a+x run.sh
+
+CMD [ "/app/run.sh" ]
 
 ARG BUILD_ARCH
 ARG BUILD_DATE
