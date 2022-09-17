@@ -72,3 +72,11 @@ Here is the automation I use to create a snapshot and upload it to Dropbox.
 This project is young, and very light. I am interested in adding some features -
 so long as it remains simple and easy to use. Please let me know of your ideas
 and feedback!
+
+
+## Making a release
+
+`tox -e docker-build` and `tox -e docker-push` are probably the easiest way.
+
+I tried setting up the github actions but failed. This works for now, good luck
+future person trying to do this :)
